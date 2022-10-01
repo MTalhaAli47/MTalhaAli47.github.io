@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bootstrap 5 - Transparent Navbar</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="name" content="Muhammad Talha's Portfolio" >
+<meta name="robots" content="noindex, nofollow">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+
+
+.HarryPotterClass {
+  width: 100px;
+  height: 100px;
+  background-color: rgba(179, 97, 159, 0);
+  animation-name: example;
+  animation-duration: 20s;
+  position: relative;
+  animation-iteration-count: infinite;
+}
+
+@keyframes example {
+  0%   {background-color: rgba(255, 0, 0, 0); top: 20px;left: 0px;}
+  25%  {background-color: rgba(0, 255, 238, 0);left: 1130px; top: 20px;}
+  50%  {background-color: rgba(255, 0, 191, 0);right: 1130px ;left: 0px; top: 600px;}
+  100% {background-color: rgba(0, 128, 0, 0);left: 1130px;top: 600px;}
+}
+
+.bg-color-for-pics{
+background-color: aqua;
+text-align: center;
+
+}
+.grid-container {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  gap: 10px;
+  background-color: black;
+  padding: 10px;
+}
+
+.grid-container > div {
+  background-color: rgba(0, 0, 0, 0.8);
+  text-align: center;
+  padding: 20px 0;
+  font-size: 30px;
+}
+
+.item1 {
+  grid-column-start: 1;
+  grid-column-end: 2;
+}
+
+
+
+      .banner-image {
+        background-image: url('img/Wining4.png');
+        background-size: cover;
+      }
+       /* for footer after using <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"> */
+       .footer-col-text {
+            color: rgb(209, 209, 209);
+            
+        }
+        /* for social media icons buttons */
+        
+        .fa {
+            padding: 9px;
+            font-size: 45px;
+            height: 50px;
+            width: 50px;
+            text-align: center;
+            text-decoration: none;
+            margin: 20px 2px;
+            border-radius: 50%;
+        }
+        
+        .fa:hover {
+            opacity: 0.7;
+        }
+        
+        .fa-facebook {
+            background: #3B5998;
+            color: white;
+            
+        }
+        
+        .fa-twitter {
+            background: #55ACEE;
+            color: white;
+        }
+        
+        .fa-youtube {
+            background: #bb0000;
+            color: white;
+        }
+        
+        .fa-instagram {
+            background: #125688;
+            color: white;
+        }
+        
+        .fa-linkedin {
+            background: #335bdd;
+            color: white;
+        }
+        /* End of social media button styles  */
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  </head>
+  <body>
+    <!-- Navbar  -->
+    <nav class="navbar fixed-top navbar-expand-lg navbar-dark p-md-3">
+      <div class="container">
+        <a class="navbar-brand bg-dark" style="border-radius: 20px 20px 20px 20px; color:rgb(255, 255, 255)" href="#"><b>&nbsp;&nbsp;T2Solutions&nbsp;&nbsp;  </b></a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <div class="mx-auto"></div>
+          <ul class="navbar-nav">
+            <li style="margin-top: 20px;"class="nav-item">
+              <a class="nav-link text-white "style="border-radius: 10px 0px 0px 10px" href="index.html">Home</a>
+            </li>
+            <!-- <li style="margin-top: 20px;"class="nav-item">
+              <a class="nav-link text-white " href="#">About</a>
+            </li> -->
+            <li style="margin-top: 20px;"class="nav-item">
+              <a class="nav-link text-white " href="Services.html">Services</a>
+            </li>
+            <!-- <li style="margin-top: 20px;"class="nav-item">
+              <a class="nav-link text-white " href="#">Pricing</a>
+            </li> -->
+            <li style="margin-top: 20px;" class="nav-item">
+              <a class="nav-link text-white  " style="border-radius: 0px 10px 10px 0px" href="ContactME.html">Contact&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+            </li>
+            <li style="font-size: 35px;">
+              <a class="fa fa-facebook footer-col-text " href="https://www.facebook.com/talha.ali.54390876">
+              </a>
+              <a class="fa fa-youtube footer-col-text " href="https://www.youtube.com/channel/UCDrXWi70nrCdCIqSkaK7uYQ">
+              </a>
+              <a class="fa fa-linkedin footer-col-text " href="https://www.linkedin.com/in/mtalha-ali-674692248/">
+              </a>
+
+
+          <!-- </li> -->
+          <!-- <li style="font-size: 35px;"> -->
+              <a style="margin-right: 25px; margin-left: px;" class="fa  footer-col-text " href="https://github.com/MTalhaAli47/MTalhaAli47/tree/main">
+                <img src="img/gtihub.jpg" width="60px" height="60px"  >
+              </a>
+
+              <a class="fa fa-instagram footer-col-text " href="https://www.instagram.com/Muhammad_Talha_47_47/">
+              </a>
+
+              <a class="fa fa-whatsapp footer-col-text " style=" background-color: #25D366; color: #ffffff; " href="https://api.whatsapp.com/send?phone=923010715645">
+              </a>
+          </li>
+          </ul>
+          <!-- <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link text-white bg-dark"style="border-radius: 10px 0px 0px 10px" href="#">Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link text-white bg-dark href="#">About</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link text-white bg-dark href="#">Awards</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link text-white bg-dark" href="#">Pricing</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link text-white bg-dark " style="border-radius: 0px 10px 10px 0px" href="#">Contact</a>
+            </li>
+          </ul> -->
+        </div>
+      </div>
+    </nav>
+
+
+
+
+
+
+
+    <div style="background-color: black ;; width: auto; height: 190px; " ></div>
+
+<div style="position: absolute;" ><img src="talha_portfolio_images/harry-potter-hogwarts-07-vector-34303804.jpg" width="120px" height="120px" > </div>
+    <div class="HarryPotterClass" > <img src="talha_portfolio_images/TransparentHarryPotterVector.png" width="100px" height="100px" > </div>
+
+
+ <!-- Boostrap 5 for services  -->
+
+    <div style="background-color: rgb(193, 191, 192);padding: 40px; align-content: center;"  class="container-fluid mt-3">
+      <h1 style="text-align: center;" ><b>Services & Skills</b></h1>
+      <div class="row">
+        <div  class="col-sm-3 p-3 bg-color-for-pics text-white"><h1 style="color: black;"><b>Web Dev</b></h1></div>
+        <div  class="col-sm-3 bg-white p-3 "><h1 style="text-align: center;" ><b >Word</b></h1></div>
+        <div class="col-sm-3 p-3 bg-color-for-pics text-white"><h1 style="color: black;"><b>Excel</b></div>
+        <div class="col-sm-3 bg-white p-3 text-white"><h1 style="color: rgb(0, 0, 0); text-align: center;"><b>Access</b></h1></div>
+      </div>
+      <div  class="row">
+        <div class="col-sm-3 p-3 bg-color-for-pics text-white"><img  style="display: block; margin-left:auto; margin-right: auto; " src="talha_portfolio_images/Web Development Icon.png" width="150px" height="150px" ></div>
+        <div  class="col-sm-3 bg-white p-3 text-white"><img  style="display: block; margin-left:auto; margin-right: auto; " src="talha_portfolio_images/Word_Icon.png" width="150px" height="150px" ></div>
+        <div class="col-sm-3 p-3 bg-color-for-pics text-white"><img  style="display: block; margin-left:auto; margin-right: auto; " src="talha_portfolio_images/Excel_Icon - Copy.png" width="150px" height="150px" ></div>
+        <div class="col-sm-3 bg-white p-3 text-white"><img  style="display: block; margin-left:auto; margin-right: auto; " src="talha_portfolio_images/Access_Icon.png" width="150px" height="150px" ></div>
+      </div>
+      <div style="margin-top: 25px;" class="row">
+        <div class="col-sm-3 p-3 bg-color-for-pics text-white"><h1 style="color: black;"><b>PowerPoint</b></h1></div>
+        <div class="col-sm-3 bg-white p-3  text-white"><h1 style="color: rgb(0, 0, 0); text-align: center;"><b>Leader</b></h1></div>
+        <div class="col-sm-3 p-3 bg-color-for-pics text-white"><h1 style="color: black;"><b>Project Management</b></h1></div>
+        <div class="col-sm-3 bg-white p-3  text-white"><h1 style="color: rgb(0, 0, 0); text-align: center;"><b>Content Writer</b></h1></div>
+      </div>
+      <div class="row">
+        <div class="col-sm-3 p-3 bg-color-for-pics text-white"><img  style="display: block; margin-left:auto; margin-right: auto; " src="talha_portfolio_images/PowerPoint_Icon.png" width="150px" height="150px" ></div>
+        <div class="col-sm-3 p-3 bg-white text-white"><img  style="display: block; margin-left:auto; margin-right: auto; " src="talha_portfolio_images/Leadership_Icon.png" width="150px" height="150px" ></div>
+        <div class="col-sm-3 p-3 bg-color-for-pics text-white"><img  style="display: block; margin-left:auto; margin-right: auto; " src="talha_portfolio_images/Project_Managment_Icon.png" width="150px" height="150px" ></div>
+        <div class="col-sm-3 p-3 bg-white text-white"><img  style="display: block; margin-left:auto; margin-right: auto; " src="talha_portfolio_images/AI Content Writer.png" width="150px" height="150px" ></div>
+      </div>
+      <div style="margin-top: 25px;" class="row">
+        <div class="col-sm-3 p-3 bg-color-for-pics text-white"><h1 style="color: black;"><b>Machine Learning</b></h1></div>
+        <div class="col-sm-3 p-3 bg-white text-white"><h1 style="color: rgb(0, 0, 0); text-align: center;"><b>NLP</b></h1></div>
+        <div class="col-sm-3 p-3 bg-color-for-pics text-white"><h1 style="color: black;"><b>Data Analytics</b></h1></div>
+        <div class="col-sm-3 p-3 bg-white text-white"><h1 style="color: rgb(0, 0, 0); text-align: center;"><b>Unity Games</b></h1></div>
+      </div>
+      <div class="row">
+        <div class="col-sm-3 p-3 bg-color-for-pics text-white"><img  style="display: block; margin-left:auto; margin-right: auto; " src="talha_portfolio_images/Machine Learning Icon.png" width="150px" height="150px" ></div>
+        <div class="col-sm-3 p-3 bg-white text-white"><img  style="display: block; margin-left:auto; margin-right: auto; " src="talha_portfolio_images/NLP Icon.png" width="150px" height="150px" ></div>
+        <div class="col-sm-3 p-3 bg-color-for-pics text-white"><img  style="display: block; margin-left:auto; margin-right: auto; " src="talha_portfolio_images/data analytics icon.png" width="150px" height="150px" ></div>
+        <div  class="col-sm-3 p-3 bg-white text-white"><img  style="display: block; margin-left:auto; margin-right: auto; " src="talha_portfolio_images/unityfinal (2).jpeg" width="150px" height="150px" ></div>
+      </div>
+    </div>
+
+
+    
+
+    
+ <!--FOOTER WITH SOCIAL ICONS-->
+
+ <div class="footer-main-standard " style="background-color: rgb(0, 0, 0); ">
+  <div class="container ">
+      <div class="row ">
+
+          <div class="col-sm-4 ">
+              <h3 style="color: white; ">MAIN MENU</h3>
+              <ul style="list-style: none; ">
+                  <li>
+                      <a class="footer-col-text " href="index.html">Home
+            </a>
+                  </li>
+                  <!-- <li>
+                      <a class="footer-col-text " href=" ">About
+            </a>
+                  </li> -->
+                  <li>
+                      <a class="footer-col-text " href="Services.html">Services
+            </a>
+                  </li>
+                  <!-- <li>
+                      <a class="footer-col-text " href=" ">Pricing
+            </a>
+                  </li> -->
+                  <li>
+                      <a class="footer-col-text " href="ContactME.html">Contact
+            </a>
+                  </li>
+                  <!-- <li>
+                      <a class="footer-col-text " href=" ">
+            </a>
+                  </li> -->
+              </ul>
+
+          </div>
+
+
+          <!-- <div class="col-sm-3 ">
+              <h3 style="color: white; ">Get To Know Us</h3>
+              <ul style="list-style: none; ">
+                  <li>
+                      <a class="footer-col-text " href=" ">bowl
+            </a>
+                  </li>
+                  <li>
+                      <a class="footer-col-text " href=" ">bowl
+            </a>
+                  </li>
+                  <li>
+                      <a class="footer-col-text " href=" ">bowl
+            </a>
+                  </li>
+                  <li>
+                      <a class="footer-col-text " href=" ">bowl
+            </a>
+                  </li>
+                  <li>
+                      <a class="footer-col-text " href=" ">bowl
+            </a>
+                  </li>
+                  <li>
+                      <a class="footer-col-text " href=" ">bowl
+            </a>
+                  </li>
+              </ul>
+
+          </div> -->
+
+          <div class="col-sm-4 ">
+              <h3 style="color: white; ">EMAIL ME</h3>
+              <!-- <ul style="list-style: none; "> -->
+                  <!-- <li>
+                      <a class="footer-col-text " href=" ">bowl
+            </a>
+                  </li>
+                  <li>
+                      <a class="footer-col-text " href=" ">bowl
+            </a>
+                  </li>
+                  <li>
+                      <a class="footer-col-text " href=" ">bowl
+            </a>
+                  </li>
+                  <li>
+                      <a class="footer-col-text " href=" ">bowl
+            </a>
+                  </li>
+                  <li>
+                      <a class="footer-col-text " href=" ">bowl
+            </a>
+                  </li> -->
+                  <!-- <li> -->
+                      <a class="footer-col-text " href=mailto:"t2solutionsofficials@gmail.com">t2solutionsofficials@gmail.com
+            </a>
+                  <!-- </li> -->
+              <!-- </ul> -->
+
+          </div>
+
+          <div class="col-sm-4 ">
+              <h3 style="color: white; ">GET SOCIAL</h3>
+              <ul style=" list-style: none;  ">
+                  <li style="font-size: 35px; margin-left:15px ;">
+                      <a class="fa fa-facebook footer-col-text " href="https://www.facebook.com/talha.ali.54390876">
+                      </a>
+                      <a class="fa fa-youtube footer-col-text " href="https://www.youtube.com/channel/UCDrXWi70nrCdCIqSkaK7uYQ">
+                      </a>
+                      <a class="fa fa-linkedin footer-col-text " href="https://www.linkedin.com/in/mtalha-ali-674692248/">
+                      </a>
+
+
+                  </li>
+                  <li style="font-size: 35px;">
+                    <a style="margin-right: 25px; margin-left: px;" class="fa  footer-col-text " href="https://github.com/MTalhaAli47/MTalhaAli47/tree/main">
+                      <img src="img/gtihub.jpg" width="60px" height="60px"  >
+                    </a>
+
+                      <a class="fa fa-instagram footer-col-text " href="https://www.instagram.com/Muhammad_Talha_47_47/">
+                      </a>
+
+                      <a class="fa fa-whatsapp footer-col-text " style=" background-color: #25D366; color: #ffffff; " href="https://api.whatsapp.com/send?phone=923010715645">
+                      </a>
+                  </li>
+              </ul>
+
+
+          </div>
+
+
+
+
+
+      </div>
+  </div>
+</div>
+
+<!-- End For Footer With Social Icon-->
+
+
+
+
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <script type="text/javascript">
+      var nav = document.querySelector('nav');
+
+      window.addEventListener('scroll', function () {
+        if (window.pageYOffset > 100) {
+          nav.classList.add('bg-dark', 'shadow');
+        } else {
+          nav.classList.remove('bg-dark', 'shadow');
+        }
+      });
+    </script>
+  </body>
+</html>
