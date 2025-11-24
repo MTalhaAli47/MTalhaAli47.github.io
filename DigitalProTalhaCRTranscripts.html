@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Talha Transcript Calculator</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h1 { text-align: center; margin-bottom: 30px; }
+    h2 { background: #0077cc; color: white; padding: 6px; border-radius: 4px; }
+    table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+    th, td { border: 1px solid #ccc; padding: 6px; text-align: center; }
+    th { background: #f0f0f0; }
+    .summary { font-weight: bold; margin-top: 20px; font-size: 18px; }
+    .sem-summary { background: #f9f9f9; font-weight: bold; }
+    .form-container { margin-bottom: 20px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+    .form-container input, .form-container select { margin: 5px 0; padding: 4px; }
+    .form-container button { margin-top: 5px; }
+  </style>
+</head>
+<body>
+
+<h1>Transcript Calculator</h1>
+
+<!-- Add Semester Form -->
+<div class="form-container">
+  <h2>Add Semester</h2>
+  <input type="text" id="semesterName" placeholder="Semester Name (e.g., Fall 2026)">
+  <button onclick="addSemester()">Add Semester</button>
+</div>
+
+<!-- Add Course Form -->
+<div class="form-container">
+  <h2>Add Course</h2>
+  <select id="semesterSelect"></select><br>
+  <input type="text" id="courseCode" placeholder="Course Code">
+  <input type="text" id="courseName" placeholder="Course Name">
+  <input type="number" id="courseCredits" placeholder="Credit Hours" min="0">
+  <select id="courseGrade">
+    <option value="A+">A+</option>
+    <option value="A">A</option>
+    <option value="A-">A-</option>
+    <option value="B+">B+</option>
+    <option value="B">B</option>
+    <option value="B-">B-</option>
+    <option value="C+">C+</option>
+    <option value="C">C</option>
+    <option value="C-">C-</option>
+    <option value="D+">D+</option>
+    <option value="D">D</option>
+    <option value="F">F</option>
+  </select><br>
+  <button onclick="addCourse()">Add Course</button>
+</div>
+
+<div id="semesters"></div>
+<div class="summary"><p id="cgpa">Overall CGPA: </p></div>
+
+<script>
+const gradePoints = {
+  "A+": 4.0, "A": 4.0, "A-": 3.67,
+  "B+": 3.33, "B": 3.0, "B-": 2.67,
+  "C+": 2.33, "C": 2.0, "C-": 1.67,
+  "D+": 1.33, "D": 1.0, "F": 0
+};
+
+// Full transcript data including all your courses
+const transcript = {
+  "Fall 2022": [
+    { code: "CL1000", name: "Introduction to ICT", cr: 1, grade: "A" },
+    { code: "CL1002", name: "Programming Fundamentals - Lab", cr: 1, grade: "D+" },
+    { code: "CS1002", name: "Programming Fundamentals", cr: 3, grade: "B-" },
+    { code: "MT1003", name: "Calculus and Analytical Geometry", cr: 3, grade: "C+" },
+    { code: "NS1001", name: "Applied Physics", cr: 3, grade: "B" },
+    { code: "SL1004", name: "English Composition & Comprehension - Lab", cr: 1, grade: "A-" },
+    { code: "SS1002", name: "Islamic Studies/Ethics", cr: 3, grade: "A+" },
+    { code: "SS1004", name: "English Composition & Comprehension", cr: 2, grade: "C" }
+  ],
+  "Spring 2023": [
+    { code: "CL1004", name: "Object Oriented Programming - Lab", cr: 1, grade: "D+" },
+    { code: "CS1004", name: "Object Oriented Programming", cr: 3, grade: "C-" },
+    { code: "EE1005", name: "Digital Logic Design", cr: 3, grade: "C+" },
+    { code: "EL1005", name: "Digital Logic Design - Lab", cr: 1, grade: "A+" },
+    { code: "MT1006", name: "Differential Equations", cr: 3, grade: "C" },
+    { code: "SL1008", name: "Communication & Presentation Skills - Lab", cr: 1, grade: "A-" },
+    { code: "SS1003", name: "Pakistan Studies", cr: 3, grade: "A-" },
+    { code: "SS1008", name: "Communication & Presentation Skills", cr: 2, grade: "B" }
+  ],
+  "Fall 2023": [
+    { code: "CL2001", name: "Data Structures - Lab", cr: 1, grade: "C-" },
+    { code: "CS1005", name: "Discrete Structures", cr: 3, grade: "B" },
+    { code: "CS2001", name: "Data Structures", cr: 3, grade: "D+" },
+    { code: "EE2003", name: "Computer Organization & Assembly Language", cr: 3, grade: "C-" },
+    { code: "EL2003", name: "COAL - Lab", cr: 1, grade: "B-" },
+    { code: "MG1002", name: "Marketing Management", cr: 3, grade: "B" },
+    { code: "MT1004", name: "Linear Algebra", cr: 3, grade: "C" }
+  ],
+  "Spring 2024": [
+    { code: "CL2005", name: "Database Systems - Lab", cr: 1, grade: "B" },
+    { code: "CL2006", name: "Operating Systems - Lab", cr: 1, grade: "B-" },
+    { code: "CS2005", name: "Database Systems", cr: 3, grade: "C+" },
+    { code: "CS2006", name: "Operating Systems", cr: 3, grade: "D+" },
+    { code: "CS2009", name: "Design & Analysis of Algorithms", cr: 3, grade: "F" },
+    { code: "MT2005", name: "Probability & Statistics", cr: 3, grade: "C+" },
+    { code: "SS2003", name: "Psychology", cr: 3, grade: "B" }
+  ],
+  "Summer 2024": [
+    { code: "CS2009", name: "Design & Analysis of Algorithms (Repeat)", cr: 3, grade: "B" }
+  ],
+  "Fall 2024": [
+    { code: "CL3001", name: "Computer Networks - Lab", cr: 1, grade: "C+" },
+    { code: "CS2008", name: "Numerical Computing", cr: 3, grade: "D" },
+    { code: "CS3001", name: "Computer Networks", cr: 3, grade: "F" },
+    { code: "CS3004", name: "Software Design & Analysis", cr: 3, grade: "C+" },
+    { code: "CS3005", name: "Theory of Automata", cr: 3, grade: "C-" },
+    { code: "SS2007", name: "Technical & Business Writing", cr: 3, grade: "C+" }
+  ],
+  "Spring 2025": [
+    { code: "AI2002", name: "Artificial Intelligence", cr: 3, grade: "D" },
+    { code: "AL2002", name: "AI - Lab", cr: 1, grade: "B+" },
+    { code: "CL3001", name: "Computer Networks - Lab (Repeat)", cr: 1, grade: "B-" },
+    { code: "CS3001", name: "Computer Networks (Repeat)", cr: 3, grade: "B-" },
+    { code: "CS3006", name: "Parallel & Distributed Computing", cr: 3, grade: "D" },
+    { code: "CS3009", name: "Software Engineering", cr: 3, grade: "C+" },
+    { code: "CS4031", name: "Compiler Construction", cr: 3, grade: "F" }
+  ],
+  "Fall 2025": [
+    { code: "CS3002", name: "Information Security", cr: 3, grade: "F" },
+    { code: "CS4001", name: "Professional Practices in IT", cr: 3, grade: "F" },
+    { code: "CS4046", name: "Game Design & Development", cr: 3, grade: "F" },
+    { code: "CS4049", name: "Blockchain & Cryptocurrency", cr: 3, grade: "F" },
+    { code: "CS4061", name: "Ethical Hacking Concepts", cr: 3, grade: "F" },
+    { code: "CS4091", name: "Final Year Project – I", cr: 3, grade: "F" }
+  ],
+  "Spring 2026 (8th Semester)": [
+    { code: "CS4092", name: "Final Year Project – II", cr: 6, grade: "F" },
+    { code: "Elective1", name: "Elective Course 1", cr: 3, grade: "F" },
+    { code: "Elective2", name: "Elective Course 2", cr: 3, grade: "F" },
+    { code: "Elective3", name: "Elective Course 3", cr: 3, grade: "F" }
+  ]
+};
+
+// --- Helper functions and transcript building (unchanged) ---
+function buildLatestMapUpTo(semestersArray, uptoIndex) {
+  const latest = {};
+  for (let k = 0; k <= uptoIndex; k++) {
+    const courses = semestersArray[k][1];
+    for (const c of courses) {
+      latest[c.code] = { cr: c.cr, grade: c.grade };
+    }
+  }
+  return latest;
+}
+
+function buildLatestMapAll(semestersArray) {
+  return buildLatestMapUpTo(semestersArray, semestersArray.length - 1);
+}
+
+function buildTranscript() {
+  const container = document.getElementById("semesters");
+  container.innerHTML = "";
+  const semestersArray = Object.entries(transcript);
+  const semesterSelect = document.getElementById("semesterSelect");
+  semesterSelect.innerHTML = "";
+  for (let s = 0; s < semestersArray.length; s++) {
+    const [sem, courses] = semestersArray[s];
+    const option = document.createElement("option");
+    option.value = sem; option.text = sem;
+    semesterSelect.add(option);
+
+    let html = `<h2>${sem}</h2>
+      <table>
+      <tr><th>Code</th><th>Course</th><th>CrHr</th><th>Grade</th><th>Points</th></tr>`;
+    let totalCr = 0, totalPts = 0;
+
+    courses.forEach((c, i) => {
+      const gpValue = gradePoints[c.grade] ?? 0;
+      const gp = gpValue * c.cr;
+      totalCr += c.cr;
+      totalPts += gp;
+      html += `<tr>
+        <td>${c.code}</td>
+        <td>${c.name}</td>
+        <td>${c.cr}</td>
+        <td>
+          <select onchange="updateGrade('${sem}',${i},this.value)">
+            ${Object.keys(gradePoints).map(g => `<option value="${g}" ${g===c.grade?'selected':''}>${g}</option>`).join("")}
+          </select>
+        </td>
+        <td>${gp.toFixed(2)}</td>
+      </tr>`;
+    });
+
+    const sgpa = totalCr > 0 ? totalPts / totalCr : 0;
+    const latestMap = buildLatestMapUpTo(semestersArray, s);
+    let cumCr = 0, cumPts = 0;
+    for (const entry of Object.values(latestMap)) {
+      const gpVal = gradePoints[entry.grade] ?? 0;
+      cumCr += entry.cr;
+      cumPts += gpVal * entry.cr;
+    }
+    const cgpaTillNow = cumCr > 0 ? cumPts / cumCr : 0;
+    html += `<tr class="sem-summary"><td colspan="5">SGPA: ${sgpa.toFixed(2)} | CGPA till ${sem}: ${cgpaTillNow.toFixed(2)}</td></tr></table>`;
+    container.innerHTML += html;
+  }
+  updateFinalCGPA();
+}
+
+function updateGrade(sem, index, grade) {
+  transcript[sem][index].grade = grade;
+  buildTranscript();
+}
+
+function updateFinalCGPA() {
+  const semestersArray = Object.entries(transcript);
+  const latestMap = buildLatestMapAll(semestersArray);
+  let totalCr = 0, totalPts = 0;
+  for (const entry of Object.values(latestMap)) {
+    const gpVal = gradePoints[entry.grade] ?? 0;
+    totalCr += entry.cr;
+    totalPts += gpVal * entry.cr;
+  }
+  document.getElementById("cgpa").innerText = "Overall CGPA: " + (totalCr > 0 ? (totalPts/totalCr).toFixed(2) : "0.00");
+}
+
+// --- Functions to add semesters and courses ---
+function addSemester() {
+  const semName = document.getElementById("semesterName").value.trim();
+  if (!semName) { alert("Enter a semester name"); return; }
+  if (transcript[semName]) { alert("Semester already exists"); return; }
+  transcript[semName] = [];
+  document.getElementById("semesterName").value = "";
+  buildTranscript();
+}
+
+function addCourse() {
+  const sem = document.getElementById("semesterSelect").value;
+  const code = document.getElementById("courseCode").value.trim();
+  const name = document.getElementById("courseName").value.trim();
+  const cr = parseFloat(document.getElementById("courseCredits").value);
+  const grade = document.getElementById("courseGrade").value;
+  if (!sem || !code || !name || isNaN(cr)) { alert("Fill all course details"); return; }
+  transcript[sem].push({ code, name, cr, grade });
+  document.getElementById("courseCode").value = "";
+  document.getElementById("courseName").value = "";
+  document.getElementById("courseCredits").value = "";
+  buildTranscript();
+}
+
+buildTranscript();
+</script>
+</body>
+</html>
