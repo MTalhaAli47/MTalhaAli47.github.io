@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Secure Chat Protocol – Visual Simulation</title>
+<style>
+    body {
+        margin: 0;
+        font-family: Poppins, sans-serif;
+        background: #0c1220;
+        color: white;
+    }
+    h1 {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 36px;
+        color: #66c2ff;
+    }
+    #container {
+        width: 90%;
+        margin: 20px auto;
+    }
+    .btn {
+        padding: 12px 20px;
+        margin: 8px;
+        border: none;
+        border-radius: 8px;
+        background: #1e90ff;
+        color: white;
+        font-size: 17px;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+    .btn:hover { background: #63b3ff; }
+    #visual {
+        margin-top: 25px;
+        background: #111827;
+        padding: 20px;
+        min-height: 300px;
+        border-radius: 10px;
+        box-shadow: 0px 0px 15px #1e90ff55;
+        font-size: 18px;
+        line-height: 1.6;
+    }
+    .bubble {
+        padding: 12px;
+        margin: 12px 0;
+        border-radius: 10px;
+        background: #1f2937;
+        animation: fade 0.8s;
+    }
+    @keyframes fade {
+        from {opacity: 0;} to {opacity: 1;}
+    }
+    .arrow {
+        text-align: center;
+        font-size: 25px;
+        margin: 10px 0;
+        animation: fade 1s;
+    }
+</style>
+</head>
+<body>
+
+<h1>Secure Chat Protocol – Visual Simulation</h1>
+
+<div id="container">
+
+    <!-- Buttons -->
+    <button class="btn" onclick="genCA()">Generate CA</button>
+    <button class="btn" onclick="genCert()">Generate Certificates</button>
+    <button class="btn" onclick="exchangeCerts()">Exchange Certificates</button>
+    <button class="btn" onclick="login()">Login</button>
+    <button class="btn" onclick="dh()">Diffie–Hellman Key Exchange</button>
+    <button class="btn" onclick="aes()">AES Encryption Demo</button>
+    <button class="btn" onclick="rsa()">RSA Signing Demo</button>
+    <button class="btn" onclick="transcript()">Generate Transcript & Receipt</button>
+
+    <div id="visual"></div>
+
+</div>
+
+<script>
+function show(msg) {
+    document.getElementById("visual").innerHTML += 
+        `<div class='bubble'>${msg}</div>`;
+}
+
+function arrow() {
+    document.getElementById("visual").innerHTML += 
+        `<div class='arrow'>⬇️</div>`;
+}
+
+function genCA() {
+    show("🔐 <b>Root CA Generated</b><br>• RSA 4096-bit Keypair<br>• Self-signed X.509 certificate");
+}
+
+function genCert() {
+    arrow();
+    show("📄 <b>Client Certificate Issued</b><br>Signed by Root CA.");
+    arrow();
+    show("📄 <b>Server Certificate Issued</b><br>Signed by Root CA.");
+}
+
+function exchangeCerts() {
+    arrow();
+    show("🔁 <b>Certificate Exchange</b><br>Client → Server: client_cert.pem<br>Server → Client: server_cert.pem");
+    arrow();
+    show("🔍 <b>Mutual Certificate Validation</b><br>• Signature chain OK<br>• CN matched<br>• Expiry valid");
+}
+
+function login() {
+    arrow();
+    show("🧂 <b>Salt Generated</b> – 16 bytes random");
+    show("🔐 <b>Hashed Password:</b> SHA256(salt || password)");
+    arrow();
+    show("🛡️ <b>Secure Login Request</b><br>Encrypted using temporary AES key derived from DH-1");
+}
+
+function dh() {
+    arrow();
+
+    let a = Math.floor(Math.random()*10)+2;
+    let b = Math.floor(Math.random()*10)+2;
+    let p = 23, g = 5;
+
+    let A = Math.pow(g, a) % p;
+    let B = Math.pow(g, b) % p;
+
+    let s1 = Math.pow(B, a) % p;
+    let s2 = Math.pow(A, b) % p;
+
+    show(`📡 <b>Diffie–Hellman Exchange</b><br>
+    Public params: g=${g}, p=${p}<br>
+    Client sends A = g^a mod p = <b>${A}</b><br>
+    Server sends B = g^b mod p = <b>${B}</b>`);
+
+    arrow();
+    show(`🔑 <b>Shared Secret Derived</b><br>
+    Client computes: B^a mod p = <b>${s1}</b><br>
+    Server computes: A^b mod p = <b>${s2}</b><br>
+    <b>Shared Secret Ks = ${s1}</b><br>
+    AES Key = Trunc16(SHA256(Ks))`);
+}
+
+function aes() {
+    arrow();
+    show("🧊 <b>AES-128 Encryption</b><br>Plaintext → PKCS#7 padded → Encrypted with session key K<br><i>Result: Ciphertext (ct)</i>");
+}
+
+function rsa() {
+    arrow();
+    show("✒️ <b>RSA Digital Signature</b><br>hash = SHA256(seq || ts || ct)<br>sig = RSA_SIGN(hash)<br>Ensures Integrity + Authenticity");
+}
+
+function transcript() {
+    arrow();
+    show("📜 <b>Transcript Maintained</b><br>seq | ts | ct | sig | fingerprint");
+    arrow();
+    show("🧾 <b>Session Receipt Generated</b><br>receipt = SIGN( SHA256(transcript) )<br>Provides <b>Non-Repudiation</b>.");
+}
+</script>
+
+</body>
+</html>
+\

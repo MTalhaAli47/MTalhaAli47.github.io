@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Columnar Transposition Cipher Simulation</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(180deg, #071029, #0b1a33);
+    color: #dff9ff;
+    margin: 0;
+    padding: 20px;
+}
+h1 { text-align: center; margin-bottom: 10px; }
+p.lead { text-align: center; color: #9fdfff; margin-bottom: 20px; }
+
+.panel {
+    background: rgba(255,255,255,0.02);
+    border-radius: 14px;
+    padding: 16px;
+    border: 1px solid rgba(255,255,255,0.03);
+    max-width: 900px;
+    margin: auto;
+}
+
+input[type=text], input[type=number] {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: transparent;
+    color: #dff9ff;
+    font-family: monospace;
+    font-size: 18px;
+}
+
+button {
+    padding: 10px 15px;
+    margin-top: 10px;
+    border-radius: 10px;
+    border: none;
+    background: linear-gradient(180deg, #4fd0ff, #2b9bd1);
+    color: #022;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button.ghost {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #9fdfff;
+}
+
+.grid-container {
+    display: grid;
+    gap: 8px;
+    margin-top: 20px;
+    font-family: monospace;
+    white-space: pre;
+    padding: 12px;
+    border-radius: 10px;
+    background: #182540;
+    font-size: 28px;
+    justify-content: center;
+}
+
+.grid-row {
+    display: flex;
+    gap: 4px;
+}
+
+.grid-cell {
+    width: 40px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    border-radius: 4px;
+    background: #223358;
+    color: #fff;
+}
+
+#outputBox {
+    background: #182540;
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 16px;
+    font-family: monospace;
+    font-size: 70px; /* big encrypted/decrypted text */
+    min-height: 50px;
+    text-align: center;
+}
+</style>
+</head>
+<body>
+
+<div class="panel">
+<h1>Columnar Transposition Cipher Simulation</h1>
+<p class="lead">Enter text and number of columns to see the columnar transposition visually!</p>
+
+<label>Text:</label>
+<input type="text" id="plainText" value="HELLOCOLUMN" />
+
+<label>Number of Columns:</label>
+<input type="number" id="numCols" value="4" min="2" max="10" />
+
+<button id="encryptBtn">Encrypt & Show Grid</button>
+<button id="decryptBtn">Decrypt & Show Grid</button>
+
+<div class="grid-container" id="gridContainer"></div>
+
+<label>Output:</label>
+<div id="outputBox">—</div>
+</div>
+
+<script>
+const encryptBtn = document.getElementById('encryptBtn');
+const decryptBtn = document.getElementById('decryptBtn');
+const gridContainer = document.getElementById('gridContainer');
+const outputBox = document.getElementById('outputBox');
+
+function displayGrid(rows) {
+    gridContainer.innerHTML = '';
+    rows.forEach(row => {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'grid-row';
+        row.forEach(cellChar => {
+            const cell = document.createElement('div');
+            cell.className = 'grid-cell';
+            cell.textContent = cellChar;
+            rowDiv.appendChild(cell);
+        });
+        gridContainer.appendChild(rowDiv);
+    });
+}
+
+encryptBtn.addEventListener('click', () => {
+    const text = document.getElementById('plainText').value.toUpperCase().replace(/[^A-Z]/g,'');
+    const numCols = parseInt(document.getElementById('numCols').value);
+    if(numCols < 2 || numCols > 10){ alert('Columns must be between 2 and 10'); return; }
+
+    const rows = [];
+    for(let i=0;i<Math.ceil(text.length/numCols);i++){
+        rows.push(new Array(numCols).fill(' '));
+    }
+
+    let index = 0;
+    for(let r=0;r<rows.length;r++){
+        for(let c=0;c<numCols;c++){
+            if(index < text.length){
+                rows[r][c] = text[index++];
+            }
+        }
+    }
+
+    displayGrid(rows);
+
+    // Encrypt column-wise
+    let encrypted = '';
+    for(let c=0;c<numCols;c++){
+        for(let r=0;r<rows.length;r++){
+            if(rows[r][c] !== ' ') encrypted += rows[r][c];
+        }
+    }
+    outputBox.textContent = encrypted;
+});
+
+decryptBtn.addEventListener('click', () => {
+    const cipher = document.getElementById('plainText').value.toUpperCase().replace(/[^A-Z]/g,'');
+    const numCols = parseInt(document.getElementById('numCols').value);
+    if(numCols < 2 || numCols > 10){ alert('Columns must be between 2 and 10'); return; }
+
+    const numRows = Math.ceil(cipher.length / numCols);
+    const fullCols = cipher.length % numCols; // columns that have one less if incomplete
+
+    // create empty grid
+    const rows = [];
+    for(let r=0;r<numRows;r++){
+        rows.push(new Array(numCols).fill(' '));
+    }
+
+    // fill grid column-wise
+    let index = 0;
+    for(let c=0;c<numCols;c++){
+        let colRows = numRows;
+        if(fullCols && c >= fullCols) colRows--; // shorter column if cipher not complete
+        for(let r=0;r<colRows;r++){
+            rows[r][c] = cipher[index++];
+        }
+    }
+
+    displayGrid(rows);
+
+    // read row-wise to get plaintext
+    let decrypted = '';
+    for(let r=0;r<numRows;r++){
+        for(let c=0;c<numCols;c++){
+            if(rows[r][c] !== ' ') decrypted += rows[r][c];
+        }
+    }
+    outputBox.textContent = decrypted;
+});
+</script>
+
+</body>
+</html>

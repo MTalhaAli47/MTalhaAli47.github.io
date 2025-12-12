@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Diffie–Hellman Key Exchange Visual Simulation</title>
+<style>
+body {
+    background: #0b1220;
+    font-family: Inter, Arial;
+    margin: 0;
+    padding: 20px;
+    color: white;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 32px;
+    font-weight: 700;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-top: 20px;
+}
+
+.panel {
+    background: #111a2e;
+    padding: 20px;
+    border-radius: 14px;
+    width: 350px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+
+.panel h2 {
+    text-align: center;
+}
+
+input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 12px;
+    border-radius: 10px;
+    border: none;
+    outline: none;
+}
+
+button {
+    padding: 10px 16px;
+    background: #4f7cff;
+    border: none;
+    color: white;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-right: 6px;
+    margin-top: 8px;
+}
+button:hover {
+    background: #3658d4;
+}
+
+.character {
+    width: 140px;
+    margin: 0 auto 15px auto;
+    display: block;
+}
+
+.exchange-row {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+    position: relative;
+}
+
+.arrow {
+    font-size: 32px;
+    margin: 0 40px;
+    animation: arrowAnim 1.2s infinite alternate;
+}
+
+@keyframes arrowAnim {
+    from { transform: translateY(-4px); }
+    to   { transform: translateY(4px); }
+}
+
+.shared-section {
+    margin-top: 40px;
+    text-align: center;
+}
+
+.secret-box {
+    display: inline-block;
+    background: #182540;
+    padding: 12px 20px;
+    border-radius: 12px;
+    margin: 10px;
+    min-width: 130px;
+    font-size: 18px;
+    transition: 0.4s;
+}
+
+.glow {
+    animation: glowAnim 1s forwards;
+}
+
+@keyframes glowAnim {
+    from { box-shadow: 0 0 0px #4f7cff; }
+    to   { box-shadow: 0 0 20px #4f7cff; }
+}
+
+.merge {
+    animation: mergeAnim 1s forwards;
+}
+
+@keyframes mergeAnim {
+    from { transform: scale(1); }
+    to   { transform: scale(1.25); background:#4f7cff; }
+}
+
+.log {
+    text-align:center;
+    margin-top:20px;
+    font-size:18px;
+}
+</style>
+</head>
+<body>
+
+<h1>🔐 Diffie–Hellman Key Exchange Simulation</h1>
+
+<div style="text-align:center;">
+    <label>Prime p:</label><br>
+    <input id="p" value="23" style="width:200px;"><br>
+    <label>Base g:</label><br>
+    <input id="g" value="5" style="width:200px;">
+</div>
+
+<div class="container">
+
+    <!-- Alice -->
+    <div class="panel">
+        <h2>Alice 👩‍🦰</h2>
+        <img src="https://i.imgur.com/05vWbTh.png" class="character">
+
+        <label>Private a:</label>
+        <input id="a" value="6">
+
+        <button id="alicePub">Compute A = g^a mod p</button>
+        <div>A = <span id="A">—</span></div>
+
+        <button id="aliceCompute">Compute Secret</button>
+    </div>
+
+    <!-- Bob -->
+    <div class="panel">
+        <h2>Bob 👨</h2>
+        <img src="https://i.imgur.com/w0tF0uT.png" class="character">
+
+        <label>Private b:</label>
+        <input id="b" value="15">
+
+        <button id="bobPub">Compute B = g^b mod p</button>
+        <div>B = <span id="B">—</span></div>
+
+        <button id="bobCompute">Compute Secret</button>
+    </div>
+
+</div>
+
+<!-- Exchange Arrows -->
+<div class="exchange-row">
+    <div>A → Bob <span class="arrow">➡️</span></div>
+    <div>⬅️ <span class="arrow">B → Alice</span></div>
+</div>
+
+<!-- Shared Secret Visual -->
+<div class="shared-section">
+    <h2>🔑 Shared Secret</h2>
+    <div id="S_A" class="secret-box">—</div>
+    <div id="S_B" class="secret-box">—</div>
+</div>
+
+<div class="log" id="calcLog">Waiting...</div>
+
+<script>
+// Utility functions
+function $(id){ return document.getElementById(id); }
+function toBig(n){ return BigInt(n); }
+
+function modPow(base, exp, mod) {
+    base = base % mod;
+    let result = 1n;
+    while (exp > 0) {
+        if (exp % 2n === 1n) result = (result * base) % mod;
+        base = (base * base) % mod;
+        exp = exp / 2n;
+    }
+    return result;
+}
+
+/* Compute A */
+$('alicePub').addEventListener('click', () => {
+    const p = toBig($('p').value);
+    const g = toBig($('g').value);
+    const a = toBig($('a').value);
+
+    const A = modPow(g, a, p);
+    $('A').textContent = A.toString();
+    $('A').classList.add('glow');
+
+    setTimeout(()=> $('A').classList.remove('glow'), 1000);
+});
+
+/* Compute B */
+$('bobPub').addEventListener('click', () => {
+    const p = toBig($('p').value);
+    const g = toBig($('g').value);
+    const b = toBig($('b').value);
+
+    const B = modPow(g, b, p);
+    $('B').textContent = B.toString();
+    $('B').classList.add('glow');
+
+    setTimeout(()=> $('B').classList.remove('glow'), 1000);
+});
+
+/* Alice computes S */
+$('aliceCompute').addEventListener('click', () => {
+    const p = toBig($('p').value);
+    const a = toBig($('a').value);
+    const B = toBig($('B').textContent);
+
+    const S = modPow(B, a, p);
+    $('S_A').textContent = S.toString();
+    $('S_A').classList.add('merge');
+
+    setTimeout(()=> $('S_A').classList.remove('merge'), 1000);
+
+    $('calcLog').textContent = "Alice computed S = B^a mod p";
+});
+
+/* Bob computes S */
+$('bobCompute').addEventListener('click', () => {
+    const p = toBig($('p').value);
+    const b = toBig($('b').value);
+    const A = toBig($('A').textContent);
+
+    const S = modPow(A, b, p);
+    $('S_B').textContent = S.toString();
+    $('S_B').classList.add('merge');
+
+    setTimeout(()=> $('S_B').classList.remove('merge'), 1000);
+
+    $('calcLog').textContent = "Bob computed S = A^b mod p";
+});
+</script>
+
+</body>
+</html>

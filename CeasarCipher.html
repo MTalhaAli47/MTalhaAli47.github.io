@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Caesar Cipher Visual Simulation</title>
+<style>
+body {
+    background: #0b1220;
+    color: white;
+    font-family: Inter, Arial;
+    margin: 0;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 32px;
+    font-weight: 700;
+}
+
+.container {
+    max-width: 900px;
+    margin: auto;
+    background: #111a2e;
+    padding: 20px;
+    border-radius: 14px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+
+label {
+    font-size: 18px;
+}
+
+input, textarea {
+    width: 100%;
+    padding: 12px;
+    margin-top: 6px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    border: none;
+    outline: none;
+    font-family: inherit;
+    font-size: 16px;
+}
+
+button {
+    padding: 12px 20px;
+    background: #4f7cff;
+    border: none;
+    color: white;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-right: 12px;
+    margin-top: 10px;
+}
+button:hover {
+    background: #3658d4;
+}
+
+.slider-box {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+#shiftValue {
+    font-size: 22px;
+    font-weight: bold;
+    color: #ffbf40;
+}
+
+.wheel-container {
+    text-align: center;
+    margin-top: 30px;
+}
+
+.wheel {
+    display: inline-block;
+    width: 260px;
+    height: 260px;
+    border: 6px solid #4f7cff;
+    border-radius: 50%;
+    position: relative;
+    font-size: 20px;
+    font-weight: bold;
+    animation: fadeIn 1s;
+}
+
+.wheel span {
+    position: absolute;
+    left: 50%;
+    transform-origin: 0 130px;
+}
+
+@keyframes rotateWheel {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+    from { opacity:0; transform:scale(0.85); }
+    to { opacity:1; transform:scale(1); }
+}
+
+.highlight {
+    color: #ffbf40;
+    font-size: 28px;
+}
+
+#outputBox {
+    background:#182540;
+    padding:20px;
+    border-radius:12px;
+    min-height:60px;
+    font-size:20px;
+}
+
+.character {
+    width: 180px;
+    display:block;
+    margin:10px auto;
+}
+</style>
+</head>
+<body>
+
+<h1>🏛️ Caesar Cipher Simulation</h1>
+
+<div class="container">
+
+    <img src="https://i.imgur.com/nmEtx7T.png" class="character">
+
+    <label>Enter Text:</label>
+    <textarea id="inputText" rows="3">HELLO WORLD</textarea>
+
+    <div class="slider-box">
+        <label>Shift: <span id="shiftValue">3</span></label><br>
+        <input type="range" id="shift" min="1" max="25" value="3" oninput="updateShift()">
+    </div>
+
+    <button onclick="encrypt()">Encrypt</button>
+    <button onclick="decrypt()">Decrypt</button>
+
+    <div class="wheel-container">
+        <div id="wheel" class="wheel"></div>
+    </div>
+
+    <h2>Output:</h2>
+    <div id="outputBox"></div>
+
+</div>
+
+<script>
+
+// Draw alphabet wheel
+function renderWheel() {
+    const wheel = document.getElementById("wheel");
+    wheel.innerHTML = "";
+
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+    for (let i = 0; i < 26; i++) {
+        const letter = document.createElement("span");
+        letter.innerHTML = alphabet[i];
+        letter.style.transform = `rotate(${(360/26)*i}deg) translateX(50px)`;
+        wheel.appendChild(letter);
+    }
+}
+renderWheel();
+
+function updateShift() {
+    const s = document.getElementById("shift").value;
+    document.getElementById("shiftValue").textContent = s;
+
+    // Rotate wheel animation
+    const wheel = document.getElementById("wheel");
+    wheel.style.transform = `rotate(${s * 13.8}deg)`;
+}
+
+function caesar(text, shift) {
+    let result = "";
+    text = text.toUpperCase();
+
+    for (let char of text) {
+        if (char >= "A" && char <= "Z") {
+            let code = char.charCodeAt(0) - 65;
+            let newCode = (code + shift + 26) % 26;
+            result += String.fromCharCode(newCode + 65);
+        } else {
+            result += char;
+        }
+    }
+    return result;
+}
+
+function animateText(original, transformed) {
+    const box = document.getElementById("outputBox");
+    box.innerHTML = "";
+
+    let i = 0;
+
+    function step() {
+        if (i >= original.length) return;
+        const span = document.createElement("span");
+
+        if (/[A-Z]/.test(original[i])) {
+            span.innerHTML =
+                `<span class="highlight">${original[i]}</span> → <b>${transformed[i]}</b><br>`;
+        } else {
+            span.innerHTML = `${original[i]} → ${transformed[i]}<br>`;
+        }
+
+        box.appendChild(span);
+        i++;
+        setTimeout(step, 150);
+    }
+    step();
+}
+
+function encrypt() {
+    const text = document.getElementById("inputText").value;
+    const shift = parseInt(document.getElementById("shift").value);
+
+    const encrypted = caesar(text, shift);
+    animateText(text.toUpperCase(), encrypted);
+}
+
+function decrypt() {
+    const text = document.getElementById("inputText").value;
+    const shift = parseInt(document.getElementById("shift").value);
+
+    const decrypted = caesar(text, -shift);
+    animateText(text.toUpperCase(), decrypted);
+}
+
+</script>
+
+</body>
+</html>

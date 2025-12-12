@@ -1,0 +1,599 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Diffie–Hellman Visual Simulator — Animated</title>
+<style>
+  :root{
+    --bg:#071029; --panel:#0f1724; --accent:#4fd0ff; --muted:#9fdfff;
+  }
+  html,body{height:100%; margin:0; font-family:Inter,system-ui,Arial,sans-serif; background:linear-gradient(180deg,var(--bg),#07172a); color:#e6f7ff;}
+  .wrap{max-width:1180px;margin:18px auto;padding:18px;}
+  h1{margin:0 0 8px;text-align:center;font-weight:700}
+  p.lead{margin:0 0 18px;text-align:center;color:var(--muted)}
+
+  .panel{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:14px; padding:16px; border:1px solid rgba(255,255,255,0.03); box-shadow:0 12px 40px rgba(0,0,0,0.6);}
+
+  .row { display:flex; gap:14px; flex-wrap:nowrap; align-items:flex-start; }
+  .col { flex:1 1 0; min-width:0; }
+
+  label{display:block;color:#cfeffb;font-weight:700;margin-bottom:8px}
+  input[type=text], textarea{width:100%; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.04); background:transparent; color:#e6f7ff; font-family:monospace}
+  .controls{display:flex; gap:8px; margin-top:10px; flex-wrap:wrap}
+  button{background:linear-gradient(180deg,var(--accent),#2b9bd1); color:#022; border:none; padding:9px 12px; border-radius:10px; font-weight:800; cursor:pointer}
+  button.ghost{background:transparent; color:var(--muted); border:1px solid rgba(255,255,255,0.04)}
+  button.small{padding:8px 10px;font-weight:700}
+  .card{background:rgba(255,255,255,0.02); border-radius:12px; padding:12px; border:1px solid rgba(255,255,255,0.03)}
+
+  /* Visual area */
+  .visual-row{display:flex; gap:12px; align-items:center; justify-content:space-between; margin-top:12px}
+  .entity{display:flex; gap:10px; align-items:center;}
+  .avatar-wrap{width:140px; text-align:center}
+  .avatar-svg{width:110px;height:110px;display:block;margin:0 auto}
+  .avatar-name{margin-top:6px;font-weight:700;color:#dff9ff}
+  .pubbox{margin-top:8px;background:rgba(255,255,255,0.03); padding:8px; border-radius:8px; font-family:monospace; color:#bff6ff}
+
+  /* arrows via absolute SVG layer */
+  .arena{position:relative; min-height:180px; margin-top:14px}
+  #arrowLayer{position:absolute; inset:0; pointer-events:none; overflow:visible}
+
+  /* flying tokens container */
+  .flying-layer{position:absolute; inset:0; pointer-events:none}
+
+  /* shared secret box */
+  .shared{display:flex; gap:8px; align-items:center; justify-content:center; flex-direction:column; min-width:200px}
+  .secret-box{background:linear-gradient(90deg,#0b3b46,#064249); padding:12px 16px; border-radius:12px; border:1px solid rgba(255,255,255,0.06); font-family:monospace; color:#bff6ff}
+
+  /* stepper/log area */
+  .log{background:rgba(255,255,255,0.01); margin-top:10px; border-radius:8px; padding:8px; font-family:monospace; color:#dff9ff; max-height:320px; overflow:auto}
+  .log .step{padding:8px;border-bottom:1px dashed rgba(255,255,255,0.03)}
+  .ok{color:#a6ffd3;font-weight:800}
+  .hint{color:#9fdfff;font-size:13px;margin-top:6px}
+
+  @media (max-width:900px){
+    .row{flex-wrap:wrap}
+    .visual-row{flex-direction:column; align-items:stretch}
+    .avatar-wrap{width:100%; display:flex; justify-content:center}
+    .avatar-svg{width:96px;height:96px}
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Diffie–Hellman Visual Simulator — Animated</h1>
+    <p class="lead">Alice and Bob derive a shared secret using modular exponentiation. Click actions to animate public keys and see the shared secret merge.</p>
+
+    <div class="panel">
+      <!-- Top controls row -->
+      <div class="row" style="margin-bottom:12px;">
+        <div class="col card">
+          <label>Parameters (prime p and generator g)</label>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input id="p" type="text" value="23" title="prime p" />
+            <input id="g" type="text" value="5" title="generator g" style="width:96px"/>
+          </div>
+          <div class="controls">
+            <button id="useDemo">Use Demo (p=23,g=5)</button>
+            <button id="randomSmall" class="ghost small">Random prime</button>
+            <button id="validate" class="ghost small">Validate p</button>
+          </div>
+          <div id="calcLog" class="hint">Ready</div>
+        </div>
+
+        <div class="col card">
+          <label>Modular Exponentiation Stepper</label>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input id="base" type="text" placeholder="base" value="5" style="width:120px"/>
+            <input id="exp" type="text" placeholder="exponent" value="6" style="width:120px"/>
+            <input id="mod" type="text" placeholder="modulus" value="23" style="width:120px"/>
+          </div>
+          <div class="controls" style="margin-top:8px;">
+            <button id="prepStepper">Prepare Stepper</button>
+            <button id="nextStepBtn" class="ghost">Next Step</button>
+            <button id="autoRun" class="ghost">Run</button>
+            <button id="resetStepper" class="ghost">Reset</button>
+          </div>
+          <div id="expLog" class="log" style="margin-top:8px"></div>
+        </div>
+      </div>
+
+      <!-- Visual row: avatars + arrows + shared secret -->
+      <div class="visual-row card" style="position:relative;">
+        <div class="entity avatar-left">
+          <div class="avatar-wrap">
+            <!-- Alice SVG -->
+            <svg class="avatar-svg" viewBox="0 0 120 120" aria-hidden>
+              <defs>
+                <linearGradient id="aliceG" x1="0" x2="1"><stop offset="0" stop-color="#ffcf8b"/><stop offset="1" stop-color="#ffc08b"/></linearGradient>
+              </defs>
+              <circle cx="60" cy="60" r="54" fill="#072332"/>
+              <g transform="translate(12,10)">
+                <ellipse cx="36" cy="76" rx="28" ry="10" fill="#0b2b3a"/>
+                <circle cx="36" cy="36" r="26" fill="url(#aliceG)"/>
+                <circle cx="28" cy="30" r="4" fill="#462b1a"/>
+                <circle cx="44" cy="30" r="4" fill="#462b1a"/>
+                <path d="M24 44 C30 50, 42 50, 48 44" stroke="#6b3e24" stroke-width="2" fill="none" stroke-linecap="round"/>
+                <rect x="6" y="56" width="60" height="18" rx="8" fill="#1b6d8a"/>
+                <text x="36" y="70" text-anchor="middle" font-size="8" fill="#dff9ff">Alice</text>
+              </g>
+            </svg>
+            <div class="avatar-name">Alice</div>
+            <div class="pubbox">Private a: <input id="a" type="text" value="6" style="width:66px;margin-left:8px"/></div>
+            <div class="pubbox">Public A: <span id="A" class="ok">—</span></div>
+            <div class="controls" style="justify-content:center;">
+              <button id="genA">Compute A</button>
+              <button id="randomA" class="ghost">Random a</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- center arena for arrows & merging -->
+        <div style="flex:1; position:relative; min-width:280px; padding:10px;">
+          <div style="text-align:center; color:var(--muted); font-weight:700">Network / Channel</div>
+          <div class="arena" id="arena">
+            <svg id="arrowLayer" width="100%" height="100%" preserveAspectRatio="none"></svg>
+            <div class="flying-layer" id="flyingLayer"></div>
+
+            <!-- Shared secret visual -->
+            <div style="position:absolute; left:50%; top:48%; transform:translate(-50%,-50%); display:flex; align-items:center; gap:10px;" id="sharedVisual">
+              <div class="shared">
+                <div style="font-size:12px;color:var(--muted)">Shared Secret</div>
+                <div id="S_A" class="secret-box">—</div>
+                <div id="S_B" class="secret-box">—</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top:8px; display:flex; gap:8px; justify-content:center;">
+            <button id="aliceCompute">Alice computes S</button>
+            <button id="bobCompute" class="ghost">Bob computes S</button>
+            <button id="verify" class="ghost">Verify</button>
+          </div>
+        </div>
+
+        <div class="entity avatar-right">
+          <div class="avatar-wrap">
+            <!-- Bob SVG -->
+            <svg class="avatar-svg" viewBox="0 0 120 120" aria-hidden>
+              <defs>
+                <linearGradient id="bobG" x1="0" x2="1"><stop offset="0" stop-color="#b8d1ff"/><stop offset="1" stop-color="#a0c8ff"/></linearGradient>
+              </defs>
+              <circle cx="60" cy="60" r="54" fill="#072332"/>
+              <g transform="translate(12,10)">
+                <ellipse cx="36" cy="76" rx="28" ry="10" fill="#0b2b3a"/>
+                <circle cx="36" cy="36" r="26" fill="url(#bobG)"/>
+                <circle cx="28" cy="30" r="4" fill="#16324a"/>
+                <circle cx="44" cy="30" r="4" fill="#16324a"/>
+                <path d="M24 44 C30 50, 42 50, 48 44" stroke="#16324a" stroke-width="2" fill="none" stroke-linecap="round"/>
+                <rect x="6" y="56" width="60" height="18" rx="8" fill="#2a6f4f"/>
+                <text x="36" y="70" text-anchor="middle" font-size="8" fill="#e6fff5">Bob</text>
+              </g>
+            </svg>
+            <div class="avatar-name">Bob</div>
+            <div class="pubbox">Private b: <input id="b" type="text" value="15" style="width:66px;margin-left:8px"/></div>
+            <div class="pubbox">Public B: <span id="B" class="ok">—</span></div>
+            <div class="controls" style="justify-content:center;">
+              <button id="genB">Compute B</button>
+              <button id="randomB" class="ghost">Random b</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- bottom row logs / notes -->
+      <div class="row" style="margin-top:12px; gap:12px;">
+        <div class="col card">
+          <label>Quick Math / Logs</label>
+          <div id="calcLog" class="big" style="background:transparent; border:none; padding:4px; color:#dff9ff;">Ready</div>
+        </div>
+        <div class="col card">
+          <label>Notes</label>
+          <div style="color:#cfeffd; font-size:13px; line-height:1.4;">
+            Click Compute A / B to see the public key move across the channel. Then Alice/Bob compute the shared secret (animated merge).
+            Use the stepper to trace the square-and-multiply modular exponentiation.
+          </div>
+        </div>
+      </div>
+
+    </div> <!-- panel -->
+  </div>
+
+<script>
+/* Utilities and BigInt math */
+const $ = id => document.getElementById(id);
+const toBig = v => { try { return BigInt(v.toString().trim()); } catch(e){ return null } }
+
+function modPow(base, exponent, modulus){
+  base = BigInt(base) % BigInt(modulus);
+  exponent = BigInt(exponent);
+  modulus = BigInt(modulus);
+  if(modulus === 1n) return 0n;
+  let result = 1n;
+  while(exponent > 0n){
+    if((exponent & 1n) === 1n) result = (result * base) % modulus;
+    base = (base * base) % modulus;
+    exponent >>= 1n;
+  }
+  return result;
+}
+
+/* simple Miller-Rabin for demo primes */
+function isProbablePrime(n){
+  if(n < 2n) return false;
+  const small = [2n,3n,5n,7n,11n,13n,17n];
+  for(const p of small) if(n===p) return true;
+  for(const p of small) if(n%p===0n) return false;
+  const witnesses = [2n,7n,61n];
+  let d = n-1n, s=0;
+  while((d & 1n) === 0n){ d >>= 1n; s++; }
+  outer: for(const a of witnesses){
+    if(a % n === 0n) continue;
+    let x = modPow(a, d, n);
+    if(x===1n || x=== n-1n) continue;
+    for(let r=1;r<s;r++){
+      x = (x*x) % n;
+      if(x===n-1n) continue outer;
+    }
+    return false;
+  }
+  return true;
+}
+
+/* UI: random prime helper */
+$('useDemo').addEventListener('click', ()=>{ $('p').value='23'; $('g').value='5'; $('calcLog').textContent='Loaded demo p=23,g=5'; });
+$('randomSmall').addEventListener('click', ()=>{
+  const primes=[23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97];
+  const p = primes[Math.floor(Math.random()*primes.length)];
+  $('p').value = p.toString();
+  $('g').value = (2 + Math.floor(Math.random()*(p-3))).toString();
+  $('calcLog').textContent = `Picked p=${p}, g=${$('g').value}`;
+});
+$('validate').addEventListener('click', ()=>{
+  const p = toBig($('p').value);
+  if(p===null){ $('calcLog').textContent='Invalid p'; return; }
+  $('calcLog').textContent='Testing primality...';
+  setTimeout(()=>{ $('calcLog').textContent = isProbablePrime(p)? `p=${p} is probably prime` : `p=${p} looks composite`; }, 80);
+});
+
+/* Compute public keys + animate token flying */
+function createToken(text){
+  const token = document.createElement('div');
+  token.style.position='absolute';
+  token.style.padding='8px 10px';
+  token.style.borderRadius='12px';
+  token.style.background='linear-gradient(90deg,#fff,#dffaff)';
+  token.style.color='#002';
+  token.style.fontFamily='monospace';
+  token.style.fontWeight='700';
+  token.style.fontSize='13px';
+  token.style.boxShadow='0 8px 18px rgba(0,0,0,0.4)';
+  token.textContent = text;
+  token.classList.add('token');
+  return token;
+}
+
+function animateTokenBetween(tokenEl, fromRect, toRect, duration=900){
+  const flyingLayer = $('flyingLayer');
+  flyingLayer.appendChild(tokenEl);
+  // start pos - relative to flyingLayer
+  const containerRect = flyingLayer.getBoundingClientRect();
+  const startX = fromRect.left + fromRect.width/2 - containerRect.left;
+  const startY = fromRect.top + fromRect.height/2 - containerRect.top;
+  const endX = toRect.left + toRect.width/2 - containerRect.left;
+  const endY = toRect.top + toRect.height/2 - containerRect.top;
+  tokenEl.style.left = startX + 'px';
+  tokenEl.style.top = startY + 'px';
+  tokenEl.style.transform = 'translate(-50%,-50%) scale(0.95)';
+  tokenEl.style.transition = `transform ${duration}ms cubic-bezier(.2,.9,.2,1), left ${duration}ms linear, top ${duration}ms linear, opacity ${duration}ms`;
+  // force layout
+  void tokenEl.offsetWidth;
+  tokenEl.style.left = endX + 'px';
+  tokenEl.style.top = endY + 'px';
+  tokenEl.style.transform = 'translate(-50%,-50%) scale(1)';
+  // return promise when done
+  return new Promise(res => setTimeout(()=>{ res(); }, duration+30));
+}
+
+/* compute A */
+$('genA').addEventListener('click', async ()=>{
+  const p = toBig($('p').value), g = toBig($('g').value), a = toBig($('a').value);
+  if(!p||!g||!a){ $('calcLog').textContent='Please set p,g,a'; return; }
+  const A = modPow(g,a,p);
+  $('A').textContent = A.toString();
+  $('calcLog').textContent = `A = g^a mod p = ${A}`;
+  // animate token from Alice to center (represent sending to Bob)
+  animatePublicKeySend('A', A.toString(), 'left-to-center');
+});
+
+/* compute B */
+$('genB').addEventListener('click', async ()=>{
+  const p = toBig($('p').value), g = toBig($('g').value), b = toBig($('b').value);
+  if(!p||!g||!b){ $('calcLog').textContent='Please set p,g,b'; return; }
+  const B = modPow(g,b,p);
+  $('B').textContent = B.toString();
+  $('calcLog').textContent = `B = g^b mod p = ${B}`;
+  animatePublicKeySend('B', B.toString(), 'right-to-center');
+});
+
+/* animate public key send */
+async function animatePublicKeySend(which, text, direction){
+  // which = 'A' or 'B'
+  const avatarEl = (which==='A') ? document.querySelector('.avatar-left .avatar-wrap') : document.querySelector('.avatar-right .avatar-wrap');
+  const targetCenter = $('sharedVisual');
+  const fromRect = avatarEl.getBoundingClientRect();
+  const toRect = targetCenter.getBoundingClientRect();
+  const token = createToken(text);
+  // show small arrow on SVG layer as well
+  drawArrow(fromRect, toRect, which);
+  await animateTokenBetween(token, fromRect, toRect, 900);
+  // fade out token and keep small copy near center for merge
+  token.style.transition = 'opacity 400ms';
+  token.style.opacity = '0.0';
+  setTimeout(()=> token.remove(), 420);
+}
+
+/* draw arrow between two rects on arrowLayer */
+function drawArrow(fromRect, toRect, which){
+  const svg = $('arrowLayer');
+  // clear previous same-direction arrows
+  // create a path with marker arrow
+  const containerRect = svg.getBoundingClientRect();
+  const startX = fromRect.left + fromRect.width/2 - containerRect.left;
+  const startY = fromRect.top + fromRect.height/2 - containerRect.top;
+  const endX = toRect.left + toRect.width/2 - containerRect.left;
+  const endY = toRect.top + toRect.height/2 - containerRect.top;
+  const id = 'arrow-'+Math.random().toString(36).slice(2,8);
+  const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+  const marker = document.createElementNS('http://www.w3.org/2000/svg','marker');
+  marker.setAttribute('id',id+'m'); marker.setAttribute('markerWidth','8'); marker.setAttribute('markerHeight','8'); marker.setAttribute('refX','6'); marker.setAttribute('refY','3'); marker.setAttribute('orient','auto');
+  const arrowHead = document.createElementNS('http://www.w3.org/2000/svg','path');
+  arrowHead.setAttribute('d','M0,0 L6,3 L0,6 z');
+  arrowHead.setAttribute('fill', which==='A' ? '#fff2a8' : '#bfe0ff');
+  marker.appendChild(arrowHead);
+  svg.appendChild(marker);
+  const dx = (endX - startX);
+  const dy = (endY - startY);
+  const mx = startX + dx*0.5;
+  const my = startY + dy*0.5 - 20;
+  const d = `M ${startX} ${startY} Q ${mx} ${my} ${endX} ${endY}`;
+  path.setAttribute('d', d);
+  path.setAttribute('stroke', which==='A' ? '#ffd27a' : '#7fd7ff');
+  path.setAttribute('stroke-width','3');
+  path.setAttribute('fill','none');
+  path.setAttribute('marker-end', `url(#${id+'m'})`);
+  path.style.opacity = '0';
+  svg.appendChild(path);
+  // animate opacity and stroke-dash
+  const len = path.getTotalLength();
+  path.style.strokeDasharray = len;
+  path.style.strokeDashoffset = len;
+  requestAnimationFrame(()=> {
+    path.style.transition = 'stroke-dashoffset 900ms ease, opacity 600ms';
+    path.style.strokeDashoffset = '0';
+    path.style.opacity = '1';
+  });
+  // remove after a while
+  setTimeout(()=>{ path.style.transition = 'opacity 400ms'; path.style.opacity='0'; setTimeout(()=>{ path.remove(); marker.remove(); },450); }, 1600);
+}
+
+/* Shared secret compute + merge animation */
+$('aliceCompute').addEventListener('click', async ()=>{
+  const p = toBig($('p').value), B = toBig($('B').textContent), a = toBig($('a').value);
+  if(!p||!B||!a){ $('calcLog').textContent='Need p, B, and a'; return; }
+  const S = modPow(B,a,p);
+  $('S_A').textContent = S.toString();
+  $('calcLog').textContent = `Alice computes S = B^a mod p = ${S}`;
+  // animate a small token from center-left (where B token would be) to shared box and glow
+  await animateMergeToSecret(S.toString(), 'fromAlice');
+});
+
+/* Bob computes */
+$('bobCompute').addEventListener('click', async ()=>{
+  const p = toBig($('p').value), A_ = toBig($('A').textContent), b = toBig($('b').value);
+  if(!p||!A_||!b){ $('calcLog').textContent='Need p, A, and b'; return; }
+  const S = modPow(A_,b,p);
+  // show both in same shared box location (we'll animate merge)
+  $('S_B').textContent = S.toString();
+  $('calcLog').textContent = `Bob computes S = A^b mod p = ${S}`;
+  await animateMergeToSecret(S.toString(), 'fromBob');
+});
+
+/* animate a copy token merging into the shared secret box and pulse */
+async function animateMergeToSecret(text, from){
+  // create token near edge (slightly offset based on from)
+  const flyingLayer = $('flyingLayer');
+  const secretRect = $('sharedVisual').getBoundingClientRect();
+  // start point slightly from left or right
+  const containerRect = flyingLayer.getBoundingClientRect();
+  const token = createToken(text);
+  token.style.zIndex = 1000;
+  flyingLayer.appendChild(token);
+  const startX = (from==='fromAlice') ? (secretRect.left - 160 - containerRect.left) : (secretRect.right + 160 - containerRect.left);
+  const startY = secretRect.top + secretRect.height*0.5 - containerRect.top;
+  token.style.left = startX + 'px';
+  token.style.top = startY + 'px';
+  token.style.transform = 'translate(-50%,-50%) scale(0.9)';
+  // animate to center of secretRect
+  const endX = secretRect.left + secretRect.width/2 - containerRect.left;
+  const endY = secretRect.top + secretRect.height/2 - containerRect.top;
+  await new Promise(r=>{
+    token.style.transition = 'left 900ms ease, top 900ms ease, transform 900ms';
+    requestAnimationFrame(()=> {
+      token.style.left = endX + 'px';
+      token.style.top = endY + 'px';
+      token.style.transform = 'translate(-50%,-50%) scale(0.98)';
+    });
+    setTimeout(()=> r(), 950);
+  });
+  // flash the secret box
+  const secretBox = $('S_A');
+  secretBox.animate([{boxShadow:'0 0 0px rgba(255,255,255,0)'},{boxShadow:'0 0 24px rgba(120,250,180,0.6)'},{boxShadow:'0 0 0px rgba(255,255,255,0)'}], {duration:600});
+  // remove token
+  token.style.opacity = '0'; setTimeout(()=> token.remove(), 350);
+}
+
+/* verify */
+$('verify').addEventListener('click', ()=>{
+  const sa = $('S_A').textContent.trim(), sb = $('S_B').textContent.trim();
+  if(!sa || !sb){ $('calcLog').textContent = 'Compute both Alice and Bob shared secrets first.'; return; }
+  if(sa === sb){ $('calcLog').textContent = `VERIFIED: shared secret = ${sa}`; }
+  else $('calcLog').textContent = `Mismatch: Alice=${sa}, Bob=${sb}`;
+});
+
+/* Random private helpers */
+$('randomA').addEventListener('click', ()=> {
+  const p = toBig($('p').value); if(!p){ $('calcLog').textContent='Set p first'; return; }
+  const a = 2n + BigInt(Math.floor(Math.random()*(Number(p-3n))));
+  $('a').value = a.toString();
+});
+$('randomB').addEventListener('click', ()=> {
+  const p = toBig($('p').value); if(!p){ $('calcLog').textContent='Set p first'; return; }
+  const b = 2n + BigInt(Math.floor(Math.random()*(Number(p-3n))));
+  $('b').value = b.toString();
+});
+
+/* ------------------ Exponentiation stepper (square&multiply) ------------------ */
+function* exponentiationStepper(base, exponent, modulus){
+  base = BigInt(base) % BigInt(modulus);
+  exponent = BigInt(exponent);
+  modulus = BigInt(modulus);
+  let result = 1n;
+  let expBits = [];
+  let tempExp = exponent;
+  while(tempExp > 0n){ expBits.push(tempExp & 1n); tempExp >>= 1n; }
+  yield { stage: 'init', base, exponent, modulus, result, expBits: expBits.slice().reverse().join('') };
+  while(exponent > 0n){
+    const bit = exponent & 1n;
+    if(bit === 1n){
+      result = (result * base) % modulus;
+      yield { stage: 'multiply', bit:1, result, base, exponent, modulus };
+    } else {
+      yield { stage: 'squareOnly', bit:0, result, base, exponent, modulus };
+    }
+    base = (base * base) % modulus;
+    exponent >>= 1n;
+    yield { stage: 'square', base, exponent, result, modulus };
+  }
+  yield { stage: 'done', result };
+}
+
+let stepGen = null, autoTimer=null;
+$('prepStepper').addEventListener('click', ()=>{
+  const base = toBig($('base').value), exp = toBig($('exp').value), mod = toBig($('mod').value);
+  if(!base||!exp||!mod){ $('expLog').textContent='Provide base, exp, mod'; return; }
+  stepGen = exponentiationStepper(base, exp, mod);
+  $('expLog').innerHTML = '';
+  const first = stepGen.next();
+  if(first.value) appendStep(first.value);
+  $('nextStepBtn').disabled = false;
+});
+$('nextStepBtn').addEventListener('click', ()=>{
+  if(!stepGen){ $('expLog').textContent='Prepare stepper first'; return; }
+  const s = stepGen.next();
+  if(s.done){ appendStep({stage:'done', result:s.value? s.value.result : 'done'}); stepGen=null; return; }
+  appendStep(s.value);
+});
+$('resetStepper').addEventListener('click', ()=>{ stepGen=null; $('expLog').innerHTML=''; if(autoTimer){ clearInterval(autoTimer); autoTimer=null; }});
+$('autoRun').addEventListener('click', ()=>{
+  if(!stepGen){ $('expLog').textContent='Prepare stepper first'; return; }
+  if(autoTimer){ clearInterval(autoTimer); autoTimer=null; return; }
+  autoTimer = setInterval(()=>{
+    const s = stepGen.next();
+    if(s.done){ appendStep({stage:'done', result:s.value? s.value.result : 'done'}); clearInterval(autoTimer); autoTimer=null; stepGen=null; return; }
+    appendStep(s.value);
+  }, 600);
+});
+
+function appendStep(obj){
+  const log = $('expLog');
+  const el = document.createElement('div'); el.className='step';
+  if(obj.stage==='init'){
+    el.innerHTML = `<div><strong>Init</strong> base=${obj.base} exponent=${obj.exponent} modulus=${obj.modulus}</div>
+                    <div>Exponent bits (MSB→LSB): <code>${obj.expBits}</code></div>`;
+  } else if(obj.stage==='multiply'){
+    el.innerHTML = `<div><strong>Multiply (bit=1)</strong> → result = <code>${obj.result}</code></div>
+                    <div>base=${obj.base} exponent=${obj.exponent}</div>`;
+  } else if(obj.stage==='squareOnly'){
+    el.innerHTML = `<div><strong>Square only (bit=0)</strong> → result unchanged = <code>${obj.result}</code></div>`;
+  } else if(obj.stage==='square'){
+    el.innerHTML = `<div><strong>Square</strong> → base = <code>${obj.base}</code>; exponent now = ${obj.exponent}</div>`;
+  } else if(obj.stage==='done'){
+    el.innerHTML = `<div><strong>Done</strong> result = <code>${obj.result}</code></div>`;
+  } else {
+    el.textContent = JSON.stringify(obj);
+  }
+  log.appendChild(el);
+  log.scrollTop = log.scrollHeight;
+}
+
+/* small UX: clicking A/B copies to stepper base */
+$('A').addEventListener('click', ()=>{ if($('A').textContent.trim()!=='—'){ $('base').value=$('A').textContent; $('exp').value=$('b').value; $('mod').value=$('p').value; $('calcLog').textContent='Copied A to stepper base'; }});
+$('B').addEventListener('click', ()=>{ if($('B').textContent.trim()!=='—'){ $('base').value=$('B').textContent; $('exp').value=$('a').value; $('mod').value=$('p').value; $('calcLog').textContent='Copied B to stepper base'; }});
+
+/* init message */
+$('calcLog').textContent='Ready. Tip: compute A and B then animate shared secret.';
+/* Bob computes shared secret */
+$('bobCompute').addEventListener('click', () => {
+  const p = toBig($('p').value);
+  const b = toBig($('b').value);
+  const A = toBig($('A').textContent);
+
+  if (!p || !b || !A) {
+    $('calcLog').textContent = "Bob needs p, b, and A";
+    return;
+  }
+
+  const S = modPow(A, b, p);
+  // Create Bob's secret box if missing
+  if (!$('S_B')) {
+    const sb = document.createElement('div');
+    sb.id = 'S_B';
+    sb.className = 'secret-box';
+    sb.textContent = S.toString();
+    document.getElementById('sharedVisual').appendChild(sb);
+  } else {
+    $('S_B').textContent = S.toString();
+  }
+
+  $('calcLog').textContent = `Bob computed S = A^b mod p = ${S}`;
+});
+
+
+/* Alice computes shared secret (already exists but ensure correct format) */
+$('aliceCompute').addEventListener('click', () => {
+  const p = toBig($('p').value);
+  const a = toBig($('a').value);
+  const B = toBig($('B').textContent);
+
+  if (!p || !a || !B) {
+    $('calcLog').textContent = "Alice needs p, a, and B";
+    return;
+  }
+
+  const S = modPow(B, a, p);
+  $('S_A').textContent = S.toString();
+  $('calcLog').textContent = `Alice computed S = B^a mod p = ${S}`;
+});
+
+
+/* Verify both shared secrets */
+$('verify').addEventListener('click', () => {
+  const SA = $('S_A').textContent.trim();
+  const SB = $('S_B') ? $('S_B').textContent.trim() : null;
+
+  if (!SA || !SB || SA === "—" || SB === "—") {
+    $('calcLog').textContent = "Both secrets not computed yet!";
+    return;
+  }
+
+  if (SA === SB) {
+    $('calcLog').textContent = "✔ Shared secret MATCHES!";
+  } else {
+    $('calcLog').textContent = "❌ Secrets DO NOT match!";
+  }
+});
+
+</script>
+</body>
+</html>

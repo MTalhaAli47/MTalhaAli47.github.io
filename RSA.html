@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>RSA Full Visual Animation</title>
+<style>
+body {font-family: Inter, Arial;background: #0b1220;margin: 0;padding: 20px;color: white;}
+h1{text-align: center;font-size: 30px;margin-bottom: 20px;font-weight: 700;}
+.panel {background: #111a2e;padding: 18px;border-radius: 14px;box-shadow: 0 4px 20px rgba(0,0,0,0.4);max-width: 900px;margin: 20px auto;}
+input {width: 90%;padding: 10px;font-family: monospace;border-radius: 10px;border: none;outline: none;margin-bottom: 10px;}
+button {padding: 10px 20px;background: #4f7cff;color: white;border: none;border-radius: 10px;margin: 6px;cursor: pointer;font-weight: bold;transition: 0.2s;}
+button:hover { background:#3658d4 }
+.grid {display: grid;grid-template-columns: repeat(5, 70px);gap: 8px;justify-content: center;margin-top: 20px;}
+.cell {width: 70px;height: 70px;background: #182540;border-radius: 12px;display:flex;justify-content:center;align-items:center;font-family: monospace;font-size: 18px;transition: 0.4s;}
+.highlight {background: #ffbb33;color: black;transform: scale(1.15);}
+.step-title {font-size: 22px;margin-top: 15px;text-align: center;}
+.fade {animation: fadeAnim 0.7s forwards;}
+@keyframes fadeAnim {from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); }}
+</style>
+</head>
+<body>
+
+<h1>🔐 RSA Full Visual Animation</h1>
+
+<div class="panel">
+    <label>Message (integer)</label><br>
+    <input id="message" value="42">
+    <label>Public Key (e,n)</label><br>
+    <input id="pub" value="17,3233">
+    <label>Private Key (d,n)</label><br>
+    <input id="priv" value="2753,3233">
+    <div style="text-align:center;">
+        <button onclick="startRSA('encrypt')">Start Encryption</button>
+        <button onclick="startRSA('decrypt')">Start Decryption</button>
+        <button onclick="nextStep()">Next Step ▶</button>
+        <button onclick="resetRSA()">Reset</button>
+    </div>
+</div>
+
+<div id="stepTitle" class="step-title"></div>
+<div id="matrix" class="grid"></div>
+
+<script>
+let steps = [];
+let currentStep = 0;
+let mode = 'encrypt';
+let message, e, d, n, result;
+
+function modPow(base, exp, mod){
+    let res = 1n;
+    base = BigInt(base);
+    exp = BigInt(exp);
+    mod = BigInt(mod);
+    while(exp>0){
+        if(exp%2n===1n) res = (res*base)%mod;
+        base = (base*base)%mod;
+        exp = exp/2n;
+    }
+    return res;
+}
+
+function displayGrid(val){
+    const box = document.getElementById("matrix");
+    box.innerHTML="";
+    val.toString().split('').forEach(c=>{
+        const div=document.createElement("div");
+        div.className="cell fade highlight";
+        div.textContent=c;
+        box.appendChild(div);
+    });
+}
+
+function startRSA(selMode){
+    mode = selMode;
+    message = BigInt(document.getElementById("message").value);
+    [e,n] = document.getElementById("pub").value.split(',').map(BigInt);
+    [d,n] = document.getElementById("priv").value.split(',').map(BigInt);
+    result = null;
+    currentStep = 0;
+    steps = [];
+
+    if(mode==='encrypt'){
+        steps.push({title:`Encrypt: C = M^e mod n`, action:()=>result=modPow(message,e,n)});
+        steps.push({title:`Ciphertext C = ${message}^${e} mod ${n}`, action:()=>displayGrid(result)});
+    }else{
+        steps.push({title:`Decrypt: M = C^d mod n`, action:()=>result=modPow(message,d,n)});
+        steps.push({title:`Plaintext M = ${message}^${d} mod ${n}`, action:()=>displayGrid(result)});
+    }
+
+    document.getElementById("stepTitle").innerText=`Initial Step (${mode})`;
+    document.getElementById("matrix").innerHTML="";
+}
+
+function nextStep(){
+    if(currentStep>=steps.length) return;
+    document.getElementById("stepTitle").innerText=steps[currentStep].title;
+    steps[currentStep].action();
+    currentStep++;
+}
+
+function resetRSA(){
+    currentStep=0;
+    steps=[];
+    document.getElementById("stepTitle").innerText="";
+    document.getElementById("matrix").innerHTML="";
+}
+</script>
+
+</body>
+</html>

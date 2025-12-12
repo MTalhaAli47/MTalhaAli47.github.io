@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Rail Fence Cipher Visual Simulation</title>
+<style>
+body {
+    background: #0b1220;
+    color: white;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+}
+
+.container {
+    max-width: 900px;
+    margin: auto;
+    background: #111a2e;
+    padding: 20px;
+    border-radius: 14px;
+}
+
+input, textarea, button {
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0;
+    font-size: 16px;
+    border-radius: 8px;
+    border: none;
+}
+
+button {
+    background: #4f7cff;
+    color: white;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #3658d4;
+}
+
+.slider-box {
+    text-align: center;
+    margin: 15px 0;
+}
+
+#railsValue {
+    font-weight: bold;
+    color: #ffbf40;
+}
+
+.rail-container {
+    display: grid;
+    margin-top: 20px;
+    gap: 5px;
+    font-size: 20px;
+    font-family: monospace;
+    white-space: pre;
+    background: #182540;
+    padding: 10px;
+    border-radius: 10px;
+}
+</style>
+</head>
+<body>
+
+<h1>🚂 Rail Fence Cipher Simulation</h1>
+
+<div class="container">
+    <label>Enter Text:</label>
+    <textarea id="inputText" rows="2">HELLO WORLD</textarea>
+
+    <div class="slider-box">
+        <label>Number of Rails: <span id="railsValue">3</span></label><br>
+        <input type="range" id="rails" min="2" max="6" value="3" oninput="updateRails()">
+    </div>
+
+    <button onclick="encrypt()">Encrypt</button>
+    <button onclick="decrypt()">Decrypt</button>
+
+    <div id="railContainer" class="rail-container"></div>
+
+    <h2>Output:</h2>
+    <div id="outputBox" style="background:#182540;padding:10px;border-radius:8px;min-height:40px;font-family:monospace;"></div>
+</div>
+
+<script>
+const railContainer = document.getElementById("railContainer");
+const railsSlider = document.getElementById("rails");
+const railsValue = document.getElementById("railsValue");
+
+function updateRails(){
+    railsValue.textContent = railsSlider.value;
+}
+
+function renderZigZag(text, numRails){
+    // Create empty grid
+    let grid = Array.from({length:numRails},()=>Array(text.length).fill(' '));
+
+    let rail=0, dir=1;
+    for(let i=0;i<text.length;i++){
+        grid[rail][i] = text[i];
+        rail += dir;
+        if(rail===0 || rail===numRails-1) dir*=-1;
+    }
+
+    // Convert grid rows to strings
+    return grid.map(row=>row.join(''));
+}
+
+function animateZigZag(text, numRails){
+    const gridLines = renderZigZag(text, numRails);
+    railContainer.innerHTML = "";
+    for(let line of gridLines){
+        const div = document.createElement('div');
+        div.textContent = line;
+        railContainer.appendChild(div);
+    }
+}
+
+// Rail Fence Cipher Logic
+function railFenceEncrypt(text, numRails){
+    text = text.toUpperCase().replace(/\s/g,'');
+    let rails = Array.from({length:numRails},()=>[]);
+    let rail=0, dir=1;
+    for(let char of text){
+        rails[rail].push(char);
+        rail += dir;
+        if(rail===0 || rail===numRails-1) dir*=-1;
+    }
+    return rails.flat().join('');
+}
+
+function railFenceDecrypt(cipher, numRails){
+    let len = cipher.length;
+    let pattern=[];
+    let rail=0, dir=1;
+    for(let i=0;i<len;i++){
+        pattern.push(rail);
+        rail += dir;
+        if(rail===0 || rail===numRails-1) dir*=-1;
+    }
+
+    let rails = Array.from({length:numRails},()=>[]);
+    let counts = Array(numRails).fill(0);
+    for(let r=0;r<numRails;r++){
+        counts[r] = pattern.filter(x=>x===r).length;
+    }
+
+    let idx=0;
+    for(let r=0;r<numRails;r++){
+        rails[r] = cipher.slice(idx, idx+counts[r]).split('');
+        idx += counts[r];
+    }
+
+    let result='';
+    for(let i=0;i<len;i++){
+        result += rails[pattern[i]].shift();
+    }
+
+    return result;
+}
+
+// UI
+function encrypt(){
+    const text = document.getElementById('inputText').value;
+    const numRails = parseInt(railsSlider.value);
+    const cipher = railFenceEncrypt(text, numRails);
+    animateZigZag(text.toUpperCase().replace(/\s/g,''), numRails);
+    document.getElementById('outputBox').textContent = cipher;
+}
+
+function decrypt(){
+    const text = document.getElementById('inputText').value.toUpperCase().replace(/\s/g,'');
+    const numRails = parseInt(railsSlider.value);
+    const decrypted = railFenceDecrypt(text, numRails);
+    animateZigZag(decrypted, numRails);
+    document.getElementById('outputBox').textContent = decrypted;
+}
+</script>
+
+</body>
+</html>
